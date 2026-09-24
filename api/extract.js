@@ -5,7 +5,7 @@
 //   2) User pastes text/notes/caption -> Gemini extracts places from the text.
 // All keys live in Vercel env vars; the browser never sees them.
 
-const MODEL = "gemini-2.5-flash-lite";
+const MODEL = "gemini-3.5-flash-lite";
 const ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 // Pull any YouTube URL out of whatever the user pasted.
