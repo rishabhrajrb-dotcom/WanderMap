@@ -16,6 +16,15 @@ function findYouTubeUrl(text) {
   return m ? m[0] : null;
 }
 
+// Keep only real-looking coordinates; anything else becomes null so the map
+// skips the pin (or the browser looks it up on OpenStreetMap instead).
+function cleanCoords(o) {
+  const lat = Number(o.lat), lng = Number(o.lng);
+  const ok = Number.isFinite(lat) && Number.isFinite(lng) &&
+    Math.abs(lat) <= 90 && Math.abs(lng) <= 180 && !(lat === 0 && lng === 0);
+  return ok ? { lat, lng } : { lat: null, lng: null };
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST" });
 
@@ -43,9 +52,11 @@ Rules:
 - Correct partial or misheard names to the full real name.
 - After listing what's in the source, add 2-3 strong extra suggestions the traveller likely missed, including at least one lesser-known "hidden gem".
 - 6 to 9 places total.
+- Give each place's real latitude/longitude in decimal degrees (5 decimals). Be precise — these go on a map.
 
 Return ONLY valid JSON, no markdown, exactly:
-{"places":[{"name":"","category":"one of: Food, Culture, Nightlife, Shopping, Nature, Hidden gem, Viewpoint, Market","area":"neighbourhood or district","why":"one short sentence on why it fits or why it's worth it","fromNotes":true}]}
+{"center":{"lat":0,"lng":0},"places":[{"name":"","category":"one of: Food, Culture, Nightlife, Shopping, Nature, Hidden gem, Viewpoint, Market","area":"neighbourhood or district","why":"one short sentence on why it fits or why it's worth it","fromNotes":true,"lat":0,"lng":0}]}
+"center" is the coordinates of the centre of ${destination}.
 Set fromNotes to false for the extra ones you added that were not in the source.`;
 
   const parts = [];
@@ -79,8 +90,14 @@ Set fromNotes to false for the extra ones you added that were not in the source.
     try { parsed = JSON.parse(text); }
     catch { parsed = JSON.parse(text.replace(/```json|```/g, "").trim()); }
 
-    const places = Array.isArray(parsed.places) ? parsed.places.slice(0, 9) : [];
-    return res.status(200).json({ destination, source: youtubeUrl ? "youtube" : "text", places });
+    const places = Array.isArray(parsed.places)
+      ? parsed.places.slice(0, 9).map(p => ({ ...p, ...cleanCoords(p) }))
+      : [];
+    const center = cleanCoords(parsed.center || {});
+    return res.status(200).json({
+      destination, source: youtubeUrl ? "youtube" : "text",
+      center: center.lat != null ? center : null, places,
+    });
   } catch (e) {
     return res.status(500).json({ error: "Server error", detail: String(e).slice(0, 300) });
   }

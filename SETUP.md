@@ -74,6 +74,18 @@ Limits to know (free tier):
 - Video takes ~20–40s vs instant for text — the UI already tells the user this.
 - Very long videos cost more tokens; travel Reels/Shorts and normal guides are fine.
 
+## The map (how it works)
+- Real interactive map using Leaflet with free CARTO/OpenStreetMap tiles. No API key needed.
+- Gemini returns approximate coordinates for each place. The browser then looks each place up on
+  OpenStreetMap (Nominatim, free) in the background and moves the pin if it finds a match within
+  ~60 km of the destination. Nominatim allows ~1 request/second, so this takes a few seconds and
+  pins may shift slightly as it finishes.
+- After "Build my trip", pins are coloured by day and numbered in visiting order. Tap a stop in the
+  itinerary to fly to it; use the day buttons on the map to show one day at a time.
+- CARTO's free basemaps are fine for an MVP (up to ~75k map views/month, non-commercial). If the
+  site goes commercial or grows past that, switch the tile URL in `index.html` to a paid provider
+  (e.g. MapTiler, Stadia) — it's a one-line change.
+
 ## Known limits (be honest with trial users)
-- Map pins are illustrative positions, not real geocoded coordinates yet.
-- Real routing + geocoding is the next build.
+- Dashed lines show the order of stops each day, not real walking/driving routes.
+- If neither Gemini nor OpenStreetMap can place a stop, it's left off the map (the note says how many).

@@ -22,7 +22,10 @@ export default async function handler(req, res) {
   if (!destination) return res.status(400).json({ error: "Destination is required" });
   if (!places.length) return res.status(400).json({ error: "No places selected" });
 
-  const placeList = places.map(p => `- ${p.name} (${p.category || ""}${p.area ? ", " + p.area : ""})`).join("\n");
+  const placeList = places.map(p =>
+    `- ${p.name} (${p.category || ""}${p.area ? ", " + p.area : ""})` +
+    (Number.isFinite(p.lat) && Number.isFinite(p.lng) ? ` @ ${p.lat},${p.lng}` : "")
+  ).join("\n");
 
   const prompt = `You are an expert travel consultant planning a ${days}-day trip to ${destination}.
 
@@ -41,11 +44,12 @@ Build a realistic day-by-day itinerary that:
 - Respects a ${pace.toLowerCase()} pace (do NOT overstuff days).
 - Orders stops sensibly by time of day (markets/temples earlier, nightlife later, sunset spots at sunset).
 - Gives a realistic time and a short, SPECIFIC reason each stop fits THIS traveller ("why for you").
+- Gives every stop its latitude/longitude: copy the exact coordinates after "@" for listed places; for anything else give your best real coordinates.
 - Flags ONE risk or smart improvement for the whole trip (an overloaded day, a missed sunset, a better order).
 
 Return ONLY valid JSON, no markdown, exactly:
 {"title":"short trip title",
- "days":[{"day":1,"theme":"","stops":[{"time":"09:00","name":"","area":"","why":"","travelToNext":"~15 min by transit"}]}],
+ "days":[{"day":1,"theme":"","stops":[{"time":"09:00","name":"","area":"","why":"","travelToNext":"~15 min by transit","lat":0,"lng":0}]}],
  "review":{"verdict":"one line: is this a good plan?","fix":"the single most useful improvement"}}`;
 
   let itinerary = null;
