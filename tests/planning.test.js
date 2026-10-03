@@ -45,6 +45,7 @@ test('handler flow passes preferences to AI and stores validated choices',async(
  let prompts=[],saved;
  t.mock.method(globalThis,'fetch',async(url,options)=>{
   if(String(url).endsWith('/rest/v1/trips')){saved=JSON.parse(options.body);return new Response(null,{status:201});}
+  if(String(url).includes('/rest/v1/'))return new Response(null,{status:201,headers:{'content-range':'0-0/0'}});
   const request=JSON.parse(options.body),prompt=request.contents[0].parts.at(-1).text;prompts.push(prompt);
   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(geminiReply(prompt))}]}}]});
  });
@@ -68,6 +69,6 @@ test('storage failure still returns a usable draft',async(t)=>{
  const keys=['GEMINI_API_KEY','SUPABASE_URL','SUPABASE_SECRET_KEY'],before=keys.map(k=>process.env[k]);
  [process.env.GEMINI_API_KEY,process.env.SUPABASE_URL,process.env.SUPABASE_SECRET_KEY]=['test','https://example.invalid','test'];
  t.after(()=>keys.forEach((k,i)=>{if(before[i]===undefined)delete process.env[k];else process.env[k]=before[i];}));
- t.mock.method(globalThis,'fetch',async(url,options)=>String(url).endsWith('/rest/v1/trips')?new Response(null,{status:503}):Response.json({candidates:[{content:{parts:[{text:JSON.stringify(geminiReply(JSON.parse(options.body).contents[0].parts[0].text))}]}}]}));
+ t.mock.method(globalThis,'fetch',async(url,options)=>String(url).includes('/rest/v1/')?new Response(null,{status:503}):Response.json({candidates:[{content:{parts:[{text:JSON.stringify(geminiReply(JSON.parse(options.body).contents[0].parts[0].text))}]}}]}));
  const result=await invoke(plan,{...base,places:selected});assert.equal(result.statusCode,200);assert.equal(result.body.saved,false);assert.ok(result.body.itinerary.days.length);
 });

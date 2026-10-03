@@ -1,0 +1,4 @@
+{
+  "rewrites": [{"source": "/t/:id", "destination": "/api/share?id=:id"}],
+  "functions": {"api/*.js": {"maxDuration": 30}}
+}

@@ -24,16 +24,16 @@ For real generation, set GEMINI_API_KEY in your shell and run npm run dev withou
 Never commit secrets. GEMINI_MODEL optionally overrides the default gemini-3.5-flash-lite.
 
 ## Hosting and storage
-Deploy the root to Vercel as a static project with the api directory. No build step.
-Use GEMINI_API_KEY and optionally SUPABASE_URL and SUPABASE_SECRET_KEY on the server.
-Existing trips schema remains compatible: trip JSON contains preferences and included choices.
-The secret key stays server-side. RLS must remain enabled on trips; no new policies are required for this change.
-Saving is best-effort; no email is sent, and this version does not provide account-based reopening.
-Production quota management, durable rate limiting, and live-provider smoke tests remain follow-up work.
+Deploy the repository root to Vercel. There's no build step; `api/` holds the server functions.
+Setup (Supabase SQL, environment variables, caps, guardrail): see **SETUP.md**.
+Product spec, personalisation questions, roadmap and how this maps to the GenAI assignment: see **docs/PRODUCT.md**.
 
-## Next increments
-1. Real interactive map, verified place identities and coordinates.
-2. Opening hours, route data and comfortable timing checks.
-3. Trip editing/reopening and per-day rearrangement.
-4. Locals' perspectives from permitted Reddit/X sources: links, timestamps, provenance and balanced summaries.
-   Social opinions must be distinguishable from curated recommendations, never labelled as verified facts.
+## API
+- `POST /api/extract`: personal recommendation cards (Gemini)
+- `POST /api/plan`: day-by-day plan, signature moment per day, budget check, share link (Gemini)
+- `GET /api/community?destination=`: Reddit traveller tips with links (Reddit Data API + Gemini, cached)
+- `POST /api/photos`: a photo per place (Wikipedia, then Unsplash, cached)
+- `GET /api/stats`: live usage numbers from Supabase
+- `GET /api/trip?id=`, `/t/<id>`: shared trips with link previews
+
+Every Gemini exchange is stored in Supabase (`requests`) with token counts, and is capped per visitor per day.

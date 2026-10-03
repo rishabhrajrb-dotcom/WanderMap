@@ -1,14 +1,15 @@
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
-import extract from '../api/extract.js';
-import plan from '../api/plan.js';
+const api={};
+for(const name of ['extract','plan','community','photos','stats','trip','share'])api[name]=(await import(`../api/${name}.js`)).default;
 import {geminiReply} from '../tests/fixtures.js';
 const demo=process.argv.includes('--demo');
 if(demo){
  process.env.GEMINI_API_KEY='local-fixture-only';
- delete process.env.SUPABASE_URL;delete process.env.SUPABASE_SECRET_KEY;
+ delete process.env.SUPABASE_URL;delete process.env.SUPABASE_SECRET_KEY;delete process.env.SUPABASE_SERVICE_KEY;
+ delete process.env.REDDIT_CLIENT_ID;delete process.env.UNSPLASH_ACCESS_KEY;
  globalThis.fetch=async(url,options)=>{
-  if(!String(url).startsWith('https://generativelanguage.googleapis.com/'))throw new Error('Demo external request blocked');
+  if(!String(url).startsWith('https://generativelanguage.googleapis.com/'))throw new Error('Demo external request blocked'); // photos fall back to illustrations
   const body=JSON.parse(options.body),prompt=body.contents[0].parts.at(-1).text;
   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(geminiReply(prompt))}]}}]});
  };
@@ -16,12 +17,15 @@ if(demo){
 const publicFiles={'/':['index.html','text/html'],'/app.js':['app.js','text/javascript'],'/styles.css':['styles.css','text/css']};
 const server=http.createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');
- if(url.pathname==='/api/extract'||url.pathname==='/api/plan'){
+ const route=url.pathname.startsWith('/t/')?'share':url.pathname.match(/^\/api\/(\w+)$/)?.[1];
+ if(route==='share'&&url.pathname.startsWith('/t/'))url.searchParams.set('id',url.pathname.slice(3));
+ if(route&&api[route]){
   let chunks='',tooLarge=false;
   for await(const chunk of req){chunks+=chunk;if(chunks.length>50000){tooLarge=true;break;}}
   if(tooLarge){res.writeHead(413);return res.end('Request too large');}
-  const result={status(code){res.statusCode=code;return this;},json(data){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));}};
-  try{await(url.pathname==='/api/extract'?extract:plan)({method:req.method,body:chunks},result);}
+  const result={status(code){res.statusCode=code;return this;},setHeader(k,v){res.setHeader(k,v);return this;},
+   json(data){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(data));},send(body){res.end(body);}};
+  try{await api[route]({method:req.method,body:chunks,headers:req.headers,url:url.pathname+url.search,query:Object.fromEntries(url.searchParams)},result);}
   catch{res.writeHead(500);res.end('Local server error');}
   return;
  }
