@@ -1,473 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>WanderMap AI — From inspiration to a trip you can actually do</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" integrity="sha512-Zcn6bjR/8RZbLEpLIeOwNtzREBAJnUKESxces60Mpoj+2okopSAcSUIUOseddDm0cxnGQzxIR7vJgsLZbdLE3w==" crossorigin="anonymous" referrerpolicy="no-referrer">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" integrity="sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<style>
-:root{
-  --ink:#16251f;--muted:#66736d;--paper:#f7f5ef;--card:#fff;--accent:#246b52;
-  --accent2:#dff0e7;--line:#dedfd9;--warm:#f0b36a;--warmbg:#f8f3e9;
-  --shadow:0 14px 40px rgba(22,37,31,.09)
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink)}
-button,input,textarea,select{font:inherit}
-header{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 28px;border-bottom:1px solid var(--line);background:rgba(247,245,239,.94);position:sticky;top:0;z-index:10;backdrop-filter:blur(6px)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;font-family:Fraunces,serif}
-.brandmark{width:34px;height:34px;border-radius:11px;background:var(--ink);color:white;display:grid;place-items:center}
-.tag{font-size:12px;color:var(--muted);font-weight:600}
-.shell{display:grid;grid-template-columns:minmax(360px,42%) 1fr;min-height:calc(100vh - 68px)}
-.map{position:sticky;top:68px;isolation:isolate;height:calc(100vh - 68px);overflow:hidden;background:#dfe8dc;border-right:1px solid var(--line)}
-#leaflet{position:absolute;inset:0;background:#e8ece4;font-family:inherit}
-.maplabel,.mapnote,.legend{position:absolute;z-index:1000;background:rgba(255,255,255,.95);border-radius:14px;box-shadow:var(--shadow)}
-.maplabel{top:20px;left:20px;padding:10px 14px;font-weight:700;max-width:calc(100% - 90px)}
-.mapnote{left:20px;bottom:28px;max-width:min(420px,calc(100% - 40px));padding:12px 14px;font-size:13px;color:var(--muted)}
-.legend{top:68px;left:20px;display:none;flex-wrap:wrap;gap:6px;padding:8px;max-width:calc(100% - 90px)}
-.legend button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px}
-.legend button i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.legend button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-/* Leaflet moves the icon element with transform, so the rotated teardrop lives on an inner div */
-.pinwrap{background:none;border:0}
-.pin{width:34px;height:34px;border-radius:50% 50% 50% 5px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:800;transform:rotate(-45deg);box-shadow:0 7px 16px rgba(0,0,0,.18);border:2px solid #fff;animation:pop .35s ease both}
-.pin.gem{background:var(--warm)}
-.pin span{transform:rotate(45deg);font-size:13px}
-.pin.active{outline:3px solid rgba(22,37,31,.35);outline-offset:2px}
-@keyframes pop{from{opacity:0;scale:.4}to{opacity:1;scale:1}}
-.leaflet-popup-content-wrapper{border-radius:14px}
-.leaflet-popup-content{margin:12px 14px;font-size:12px;line-height:1.45;color:var(--muted)}
-.leaflet-popup-content b{display:block;font-size:13px;color:var(--ink)}
-.panel{padding:34px;max-width:820px;width:100%;margin:auto}
-.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800;color:var(--accent)}
-h1{font-family:Fraunces,serif;font-size:42px;line-height:1.04;margin:9px 0 12px;letter-spacing:-.02em;font-weight:600}
-h1 em{font-style:normal;color:var(--accent)}
-.lead{color:var(--muted);font-size:16px;line-height:1.55;margin:0 0 25px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 7px 22px rgba(22,37,31,.04);margin-bottom:16px}
-.step{display:flex;align-items:center;gap:10px;font-weight:800;margin-bottom:15px}
-.num{width:27px;height:27px;border-radius:9px;background:var(--accent2);color:var(--accent);display:grid;place-items:center;font-size:13px;flex:0 0 auto}
-label{display:block;font-size:12px;font-weight:700;margin:11px 0 6px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-input,textarea,select{width:100%;border:1px solid #d8dcd7;border-radius:12px;padding:11px 12px;background:#fbfcfa;color:var(--ink);outline:none}
-textarea{min-height:102px;resize:vertical}
-input:focus,textarea:focus,select:focus{border-color:var(--accent)}
-.chips{display:flex;gap:8px;flex-wrap:wrap}
-.chip{border:1px solid var(--line);background:#fafbf9;border-radius:999px;padding:8px 11px;font-size:12px;font-weight:600;cursor:pointer}
-.chip.on{background:var(--accent2);border-color:#9fc8b6;color:#174d3b}
-.primary{width:100%;border:0;background:var(--ink);color:#fff;border-radius:13px;padding:13px 16px;font-weight:800;cursor:pointer;margin-top:14px}
-.primary:hover{filter:brightness(1.08)}
-.primary:disabled{opacity:.55;cursor:not-allowed}
-.hint{font-size:11px;color:var(--muted);margin-top:8px}
-.found{display:none}
-.placegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.place{border:1px solid var(--line);border-radius:13px;padding:11px;display:flex;gap:9px;align-items:flex-start;cursor:pointer}
-.place input{width:auto;margin-top:3px}
-.place b{font-size:13px}
-.place small{display:block;color:var(--muted);margin-top:3px}
-.place .gemtag{display:inline-block;font-size:9px;font-weight:800;color:#a9691a;background:#fbeecf;padding:2px 6px;border-radius:6px;margin-top:5px}
-.itinerary{display:none}
-.trip-title{font-family:Fraunces,serif;font-size:24px;margin:0 0 4px}
-.day{border-left:3px solid var(--daycolor,var(--accent));padding-left:16px;margin:15px 0 20px}
-.day h3{margin:0 0 11px;color:var(--daycolor,var(--ink));font-family:Fraunces,serif;font-weight:600}
-.stop{display:grid;grid-template-columns:56px 1fr;gap:10px;margin:6px -8px;padding:4px 8px;border-radius:10px}
-.stop.onmap{cursor:pointer}
-.stop.onmap:hover,.stop.active{background:var(--accent2)}
-.time{font-size:12px;font-weight:800;color:var(--accent)}
-.stop b{font-size:13px}
-.stop p{margin:2px 0;color:var(--muted);font-size:12px}
-.travel{margin:4px 0 4px 66px;font-size:11px;color:#7b817e}
-.review{background:var(--warmbg);border-radius:13px;padding:14px;margin-top:10px;font-size:13px}
-.review b{display:block;margin-bottom:3px}
-.badge{display:inline-block;padding:4px 7px;border-radius:7px;background:var(--accent2);color:var(--accent);font-size:10px;font-weight:800;margin-right:5px}
-.loading{display:none;text-align:center;padding:14px;color:var(--muted);font-size:13px}
-.dots:after{content:"";animation:dots 1.2s infinite}
-@keyframes dots{0%{content:""}33%{content:"."}66%{content:".."}100%{content:"..."}}
-.err{display:none;background:#fdecec;border:1px solid #f3c9c9;color:#8f2f2f;border-radius:12px;padding:11px 13px;font-size:12px;margin-top:10px}
-.saved{font-size:12px;color:var(--accent);font-weight:700;margin-top:10px;display:none}
-@media(max-width:820px){
-  .shell{grid-template-columns:1fr}
-  .map{position:relative;top:0;height:380px;border-right:0;border-bottom:1px solid var(--line);scroll-margin-top:68px}
-  .maplabel{top:12px;left:12px;padding:8px 12px;font-size:14px}.legend{top:54px;left:12px}
-  .mapnote{left:12px;bottom:24px;padding:8px 11px;font-size:11px}
-  .panel{padding:22px}
-  h1{font-size:32px}
-  .grid2,.placegrid{grid-template-columns:1fr}
-}
-</style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#246b52">
+<title>WanderMap — A trip that feels like you</title>
+<link rel="stylesheet" href="/styles.css"><script defer src="/app.js"></script>
 </head>
 <body>
-<header>
-  <div class="brand"><div class="brandmark">↗</div> WanderMap AI</div>
-  <div class="tag">From saved inspiration to a trip you can actually do.</div>
-</header>
-
-<main class="shell">
-<section class="map" id="map">
-  <div id="leaflet" aria-label="Trip map"></div>
-  <div class="maplabel" id="mapTitle">Your trip map</div>
-  <div class="legend" id="legend"></div>
-  <div class="mapnote" id="mapNote">Add your destination and inspiration. Places appear here once we extract them.</div>
+<header><a class="brand" href="/">↗ WanderMap<span>YOUR TRIP, YOUR WAY</span></a><span class="header-note">A little guidance. All your choices.</span></header>
+<main>
+<section class="intro"><p class="eyebrow">LESS RESEARCH. MORE LOOKING FORWARD.</p><h1>A trip that<br>feels like <em>you.</em></h1><p>Find your kind of places, understand what makes them worth your time, and shape a trip at your own pace.</p></section>
+<div class="layout">
+<div class="flow">
+<form id="discoverForm">
+<fieldset id="profileFields">
+<section class="card">
+<p class="eyebrow">01 / SET THE SCENE</p><h2>Where are we going?</h2>
+<div class="grid2"><div><label for="destination">Destination</label><input id="destination" placeholder="e.g. Lisbon, Portugal" required maxlength="150"></div><div><label for="days">Trip length</label><select id="days"><option value="1">1 day</option><option value="2" selected>2 days</option><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option></select></div></div>
+<div class="grid2"><div><label for="party">Travelling with</label><select id="party"><option>Solo</option><option selected>Friends</option><option>Partner</option><option>Family</option></select></div><div><label for="budget">Budget style</label><select id="budget"><option>Budget</option><option selected>Mid-range</option><option>Premium</option></select></div></div>
+<label for="source">Already have inspiration? <span class="muted">Optional</span></label><textarea id="source" maxlength="6000" placeholder="Paste notes, a public YouTube link, a Reel caption, or a few places you have in mind."></textarea>
 </section>
-
-<section class="panel">
-  <div class="eyebrow">AI travel planning</div>
-  <h1>Turn your travel rabbit hole into a <em>real itinerary.</em></h1>
-  <p class="lead">Bring the places you found across Reels, YouTube and recommendations. We organise them into a realistic trip around your time, interests and pace — and tell you why each pick fits you.</p>
-
-  <!-- STEP 1 -->
-  <div class="card">
-    <div class="step"><span class="num">1</span> Add your trip &amp; inspiration</div>
-    <div class="grid2">
-      <div><label>Destination</label><input id="destination" value="" placeholder="e.g. Bangkok, Lisbon, Tokyo…"></div>
-      <div><label>Trip length</label>
-        <select id="days">
-          <option value="1">1 day</option><option value="2" selected>2 days</option>
-          <option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option>
-        </select>
-      </div>
-    </div>
-    <label>Paste a YouTube link, a Reel caption, notes, or just describe your ideal trip</label>
-    <textarea id="source" placeholder="Paste a YouTube travel video link (we'll watch it and pull out the places) — or type your own notes, e.g. 'want great street food, one temple, a rooftop sunset, a lively night market. Nothing too touristy.'"></textarea>
-    <button class="primary" id="extract">✨ Extract places from my inspiration</button>
-    <div class="err" id="extractErr"></div>
-    <div class="hint">Paste a public YouTube link and we watch the video for you. Text and captions work too.</div>
-  </div>
-
-  <div class="loading" id="loading"><span class="dots" id="loadingText">Reading your inspiration and finding real places in your destination</span></div>
-
-  <!-- STEP 2 -->
-  <div class="card found" id="found">
-    <div class="step"><span class="num">2</span> We found these places</div>
-    <div class="placegrid" id="places"></div>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="card found" id="prefs">
-    <div class="step"><span class="num">3</span> Make it yours</div>
-    <div class="grid2">
-      <div><label>Travelling with</label><select id="party"><option>Solo</option><option selected>Friends</option><option>Partner</option><option>Family</option></select></div>
-      <div><label>Budget</label><select id="budget"><option>Budget</option><option selected>Mid-range</option><option>Premium</option></select></div>
-    </div>
-    <label>What are you into?</label>
-    <div class="chips" id="chips">
-      <button class="chip on" type="button">Food</button><button class="chip on" type="button">Culture</button><button class="chip on" type="button">Nightlife</button>
-      <button class="chip" type="button">Shopping</button><button class="chip" type="button">Nature</button><button class="chip" type="button">Hidden gems</button>
-    </div>
-    <label>Pace</label>
-    <select id="pace"><option>Relaxed</option><option selected>Balanced</option><option>Packed</option></select>
-    <label>Anything we should know?</label>
-    <input id="notes" placeholder="e.g. I hate early mornings and want good nightlife">
-    <label>Your email (so we can send this itinerary &amp; new picks)</label>
-    <input id="email" type="email" placeholder="you@email.com">
-    <button class="primary" id="build">Build my trip →</button>
-    <div class="err" id="buildErr"></div>
-  </div>
-
-  <div class="loading" id="buildLoading"><span class="dots">Balancing geography, travel time and your interests</span></div>
-
-  <!-- RESULT -->
-  <div class="card itinerary" id="itinerary">
-    <div class="step"><span class="num">✓</span> Your itinerary</div>
-    <h2 class="trip-title" id="tripTitle"></h2>
-    <div id="daysOut"></div>
-    <div class="saved" id="savedNote">✓ Saved — we'll be in touch.</div>
-  </div>
+<section class="card">
+<p class="eyebrow">02 / FIND YOUR KIND OF TRIP</p><h2>What draws you in?</h2><p class="muted">Choose a few interests. We’ll tailor the places and explain why they fit.</p>
+<div id="interests" class="interest-grid" role="group" aria-label="Travel interests"></div>
+<label for="notes">Anything that would make this trip better?</label><textarea id="notes" maxlength="1500" placeholder="Dietary needs, accessibility, things to avoid, or a particular experience you’re hoping for."></textarea>
 </section>
-</main>
-
-<script>
-const $=id=>document.getElementById(id);
-let found=[];        // places returned by the API
-let selected=[];     // currently ticked places
-let center=null;     // destination centre {lat,lng}
-let trip=null;       // last built itinerary
-let mapMode="places";// "places" before a trip is built, "route" after
-let activeDay=0;     // 0 = all days, otherwise the day number shown on the map
-
-// ---------- MAP ----------
-const DAY_COLORS=["#246b52","#c0612b","#3a5fa8","#9a3f8c","#a07a10","#2c8a91","#a83a3a"];
-const dayColor=i=>DAY_COLORS[i%DAY_COLORS.length];
-const map=window.L?L.map("leaflet",{zoomControl:false,worldCopyJump:true}).setView([20,10],2):null;
-let layer=null, stopMarkers={};
-if(map){
-  L.control.zoom({position:"topright"}).addTo(map);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
-    maxZoom:19,subdomains:"abcd",
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }).addTo(map);
-  layer=L.layerGroup().addTo(map);
-}else{
-  $("mapNote").textContent="The map couldn't load. Your itinerary still works below.";
-}
-
-const valid=p=>Number.isFinite(p?.lat)&&Number.isFinite(p?.lng)&&Math.abs(p.lat)<=90&&Math.abs(p.lng)<=180&&!(p.lat===0&&p.lng===0);
-const isGem=p=>/gem/i.test(p.category||"")||p.fromNotes===false;
-function pinIcon(label,color,gem){
-  return L.divIcon({className:"pinwrap",iconSize:[34,34],iconAnchor:[17,41],popupAnchor:[0,-38],
-    html:`<div class="pin${gem?" gem":""}"${color?` style="background:${color}"`:""}><span>${label}</span></div>`});
-}
-const POPUP={autoPanPaddingTopLeft:[20,110],autoPanPaddingBottomRight:[20,90]};
-function popupHtml(title,sub,body){
-  return `<b>${esc(title)}</b>${sub?esc(sub)+"<br>":""}${body?esc(body):""}`;
-}
-function fitTo(pts){
-  if(!map) return;
-  if(pts.length>1) map.fitBounds(pts,{padding:[70,70],maxZoom:15});
-  else if(pts.length===1) map.setView(pts[0],14);
-  else if(center) map.setView([center.lat,center.lng],12);
-}
-function redraw(fit){ mapMode==="route"?renderRoute(fit):renderPins(fit); }
-
-// Pins for the places the traveller has ticked.
-function renderPins(fit=true){
-  $("mapTitle").textContent=$("destination").value+" · "+selected.length+" places";
-  $("legend").style.display="none";
-  const located=selected.filter(valid);
-  if(map){
-    layer.clearLayers();
-    selected.forEach((p,i)=>{
-      if(!valid(p)) return;
-      L.marker([p.lat,p.lng],{icon:pinIcon(i+1,null,isGem(p)),title:p.name,riseOnHover:true})
-        .bindPopup(popupHtml(p.name,[p.category,p.area].filter(Boolean).join(" · "),p.why),POPUP).addTo(layer);
-    });
-    if(fit) fitTo(located.map(p=>[p.lat,p.lng]));
-  }
-  if(!selected.length){$("mapNote").textContent="No places selected yet.";return;}
-  const missing=selected.length-located.length;
-  $("mapNote").textContent=`${located.length} of ${selected.length} places on the map`+
-    (refining?" · checking locations on OpenStreetMap…":missing?` · couldn't find ${missing} of them.`:". Tap a pin for details.");
-}
-
-// Match an itinerary stop back to an extracted place so it uses the checked coordinates.
-const norm=s=>String(s||"").toLowerCase().replace(/[^a-z0-9\u00c0-\uffff]+/g," ").trim();
-function coordsFor(s){
-  const n=norm(s.name);
-  const hit=n&&found.find(p=>{const m=norm(p.name);return m===n||(m.length>3&&n.length>3&&(m.includes(n)||n.includes(m)));});
-  if(valid(hit)) return {lat:hit.lat,lng:hit.lng};
-  const c={lat:Number(s.lat),lng:Number(s.lng)};
-  return valid(c)?c:null;
-}
-
-// Numbered, day-coloured stops joined in visiting order.
-function renderRoute(fit=true){
-  if(!trip) return;
-  const days=trip.days||[];
-  $("mapTitle").textContent=(trip.title||$("destination").value)+" · "+days.length+(days.length===1?" day":" days");
-  renderLegend(days);
-  stopMarkers={};
-  let pts=[],shown=0,total=0;
-  if(map) layer.clearLayers();
-  days.forEach((d,di)=>{
-    if(activeDay&&activeDay!==di+1) return;
-    const color=dayColor(di), line=[];
-    (d.stops||[]).forEach((s,si)=>{
-      total++;
-      const c=coordsFor(s); if(!c||!map) return;
-      shown++;
-      const m=L.marker([c.lat,c.lng],{icon:pinIcon(si+1,color),title:s.name,riseOnHover:true})
-        .bindPopup(popupHtml(s.name,`Day ${d.day||di+1}${s.time?" · "+s.time:""}`,s.why),POPUP).addTo(layer);
-      m.on("click",()=>highlightStop(di,si,true));
-      stopMarkers[di+"-"+si]=m;
-      line.push([c.lat,c.lng]);
-    });
-    if(map&&line.length>1) L.polyline(line,{color,weight:3,opacity:.8,dashArray:"6 8"}).addTo(layer);
-    pts=pts.concat(line);
-  });
-  if(fit) fitTo(pts);
-  $("mapNote").textContent=(shown<total?`${shown} of ${total} stops on the map. `:"")+
-    "Tap a stop in your itinerary to find it here. Dashed lines show the order of each day, not exact routes.";
-}
-function renderLegend(days){
-  const lg=$("legend");
-  if(days.length<2){lg.style.display="none";return;}
-  lg.innerHTML=`<button type="button" data-d="0" class="${activeDay?"":"on"}">All days</button>`+
-    days.map((d,i)=>`<button type="button" data-d="${i+1}" class="${activeDay===i+1?"on":""}"><i style="background:${dayColor(i)}"></i>Day ${d.day||i+1}</button>`).join("");
-  lg.style.display="flex";
-  lg.querySelectorAll("button").forEach(b=>b.onclick=()=>{activeDay=+b.dataset.d;renderRoute(true);});
-}
-function highlightStop(di,si,fromMap){
-  document.querySelectorAll(".stop.active").forEach(e=>e.classList.remove("active"));
-  const el=document.querySelector(`.stop[data-k="${di}-${si}"]`);
-  if(!el) return;
-  el.classList.add("active");
-  if(fromMap && window.innerWidth>820) el.scrollIntoView({behavior:"smooth",block:"nearest"});
-}
-function focusStop(di,si){
-  if(!map) return;
-  if(activeDay&&activeDay!==di+1){activeDay=di+1;renderRoute(false);}
-  const m=stopMarkers[di+"-"+si]; if(!m) return;
-  highlightStop(di,si,false);
-  if(window.innerWidth<=820) $("map").scrollIntoView({behavior:"smooth",block:"start"});
-  map.closePopup();
-  map.once("moveend",()=>m.openPopup());
-  map.flyTo(m.getLatLng(),Math.max(map.getZoom(),15),{duration:.6});
-}
-
-// ---------- LOCATION CHECK (OpenStreetMap / Nominatim) ----------
-// Gemini's coordinates are approximate, so we look each place up on OpenStreetMap
-// in the background and move the pin if we find it near the destination.
-// Nominatim's free API allows ~1 request per second, so lookups are spaced out.
-const geoCache=new Map();
-let lastGeo=0, refineRun=0, refining=false;
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function geocode(q){
-  if(geoCache.has(q)) return geoCache.get(q);
-  const wait=lastGeo+1100-Date.now(); if(wait>0) await sleep(wait);
-  lastGeo=Date.now();
-  let hit=null;
-  try{
-    const r=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=en&q="+encodeURIComponent(q));
-    const j=r.ok?await r.json():[];
-    if(j[0]) hit={lat:+j[0].lat,lng:+j[0].lon};
-  }catch{}
-  geoCache.set(q,hit);
-  return hit;
-}
-function km(a,b){
-  const R=6371,r=Math.PI/180,dLat=(b.lat-a.lat)*r,dLng=(b.lng-a.lng)*r;
-  const h=Math.sin(dLat/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dLng/2)**2;
-  return 2*R*Math.asin(Math.sqrt(h));
-}
-async function refinePlaces(dest){
-  const run=++refineRun; refining=true; redraw(false);
-  if(!valid(center)) center=await geocode(dest);
-  // Places far from the destination centre are wrong — drop Gemini's guess for those.
-  if(valid(center)) found.forEach(p=>{if(valid(p)&&km(center,p)>80){p.lat=p.lng=null;}});
-  for(const p of found){
-    if(run!==refineRun) return;
-    const qs=[...new Set([[p.name,p.area,dest],[p.name,dest]].map(a=>a.filter(Boolean).join(", ")))];
-    for(const q of qs){
-      const hit=await geocode(q);
-      if(run!==refineRun) return;
-      if(valid(hit)&&(!valid(center)||km(center,hit)<60)){p.lat=hit.lat;p.lng=hit.lng;p.checked=true;break;}
-    }
-    redraw(false);
-  }
-  refining=false;
-  if(mapMode==="route"){renderItinerary(trip);renderRoute(false);}else renderPins(true);
-}
-
-document.querySelectorAll(".chip").forEach(c=>c.onclick=()=>c.classList.toggle("on"));
-
-function showErr(el,msg){el.textContent=msg;el.style.display="block";}
-function hideErr(el){el.style.display="none";}
-
-// ---------- STEP 1: extract ----------
-$("extract").onclick=async()=>{
-  const destination=$("destination").value.trim();
-  if(!destination){showErr($("extractErr"),"Add a destination first.");return;}
-  hideErr($("extractErr"));
-  const isYouTube=/youtube\.com\/(watch|shorts)|youtu\.be\//i.test($("source").value);
-  $("loadingText").textContent=isYouTube
-    ? "Watching the video and pulling out real places — this can take 20–40 seconds"
-    : "Reading your inspiration and finding real places in your destination";
-  $("extract").disabled=true;
-  $("loading").style.display="block";
-  $("found").style.display="none";$("prefs").style.display="none";$("itinerary").style.display="none";
-  try{
-    const r=await fetch("/api/extract",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({destination,source:$("source").value})});
-    const data=await r.json();
-    if(!r.ok) throw new Error(data.error||"Extraction failed");
-    found=(data.places||[]).map(p=>({...p,lat:p.lat==null?null:+p.lat,lng:p.lng==null?null:+p.lng}));
-    if(!found.length) throw new Error("No places found — try adding a few names or more detail.");
-    center=valid(data.center)?data.center:null;
-    trip=null;mapMode="places";activeDay=0;
-    renderPlaces();syncSelected();renderPins();
-    refinePlaces(destination);
-    $("found").style.display="block";$("prefs").style.display="block";
-    $("found").scrollIntoView({behavior:"smooth",block:"center"});
-  }catch(e){
-    showErr($("extractErr"),e.message);
-  }finally{
-    $("loading").style.display="none";$("extract").disabled=false;
-  }
-};
-
-function renderPlaces(){
-  $("places").innerHTML=found.map((p,i)=>`
-    <label class="place">
-      <input type="checkbox" data-i="${i}" checked>
-      <span><b>${esc(p.name)}</b><small>${esc(p.category||"")}${p.area?" · "+esc(p.area):""}</small>
-      ${p.why?`<small style="color:#8a9089">${esc(p.why)}</small>`:""}
-      ${p.fromNotes===false?`<span class="gemtag">WE ADDED THIS</span>`:""}</span>
-    </label>`).join("");
-  $("places").querySelectorAll("input").forEach(cb=>cb.onchange=()=>{syncSelected();if(mapMode==="places")renderPins();});
-}
-function syncSelected(){
-  selected=[...$("places").querySelectorAll("input:checked")].map(c=>found[+c.dataset.i]);
-}
-
-// ---------- STEP 3: build ----------
-$("build").onclick=async()=>{
-  syncSelected();
-  if(!selected.length){showErr($("buildErr"),"Pick at least one place.");return;}
-  hideErr($("buildErr"));
-  $("build").disabled=true;
-  $("buildLoading").style.display="block";$("itinerary").style.display="none";
-  const payload={
-    destination:$("destination").value.trim(),
-    days:+$("days").value,
-    party:$("party").value,
-    budget:$("budget").value,
-    pace:$("pace").value,
-    interests:[...document.querySelectorAll(".chip.on")].map(x=>x.textContent),
-    notes:$("notes").value,
-    email:$("email").value.trim(),
-    places:selected
-  };
-  try{
-    const r=await fetch("/api/plan",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload)});
-    const data=await r.json();
-    if(!r.ok) throw new Error(data.error||"Could not build the trip");
-    trip=data.itinerary;mapMode="route";activeDay=0;
-    renderItinerary(trip);
-    $("savedNote").style.display=data.saved?"block":"none";
-    $("itinerary").style.display="block";
-    if(map) map.invalidateSize();
-    renderRoute(true);
-    $("itinerary").scrollIntoView({behavior:"smooth",block:"start"});
-  }catch(e){
-    showErr($("buildErr"),e.message);
-  }finally{
-    $("buildLoading").style.display="none";$("build").disabled=false;
-  }
-};
-
-function renderItinerary(it){
-  if(!it){$("daysOut").innerHTML="";return;}
-  $("tripTitle").textContent=it.title||"";
-  let html="";
-  (it.days||[]).forEach((d,di)=>{
-    html+=`<div class="day" style="--daycolor:${dayColor(di)}"><h3>Day ${esc(d.day??di+1)} · ${esc(d.theme||"")}</h3>`;
-    (d.stops||[]).forEach((s,i)=>{
-      const onmap=map&&coordsFor(s);
-      html+=`<div class="stop${onmap?" onmap":""}" data-k="${di}-${i}"${onmap?` role="button" tabindex="0" title="Show on map"`:""}><div class="time">${esc(s.time||"")}</div>
-        <div><b>${esc(s.name||"")}</b>
-        <p>${s.area?esc(s.area)+" · ":""}${esc(s.why||"")}</p></div></div>`;
-      if(i<d.stops.length-1 && s.travelToNext)
-        html+=`<div class="travel">↓ ${esc(s.travelToNext)}</div>`;
-    });
-    html+=`</div>`;
-  });
-  if(it.review){
-    html+=`<div class="review"><span class="badge">AI REVIEW</span>
-      <b>${esc(it.review.verdict||"")}</b>${esc(it.review.fix||"")}</div>`;
-  }
-  $("daysOut").innerHTML=html;
-  $("daysOut").querySelectorAll(".stop.onmap").forEach(el=>{
-    const [di,si]=el.dataset.k.split("-").map(Number);
-    el.onclick=()=>focusStop(di,si);
-    el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();focusStop(di,si);}};
-  });
-}
-
-function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
-</script>
-</body>
-</html>
+<section class="card">
+<p class="eyebrow">03 / LEAVE ROOM FOR YOURSELF</p><h2>How full should your days feel?</h2><p class="muted">Start with a rhythm, then adjust individual days. Choosing a new overall rhythm resets the daily settings.</p>
+<div id="intensity" class="intensity-grid" role="group" aria-label="Overall trip intensity"></div>
+<div class="grid2"><div><label for="startTime">Start sightseeing around</label><input id="startTime" type="time" value="09:00" required></div><div><label for="walking">Comfortable with walking</label><select id="walking"><option value="Light">Short, easy walks</option><option value="Moderate" selected>A moderate amount</option><option value="Lots">Lots of walking</option></select></div></div>
+<details><summary>Adjust intensity for each day</summary><div id="dayIntensity" class="day-controls"></div></details>
+<button id="discover" class="primary" type="submit">Find places for my trip ↗</button>
+<p id="discoverStatus" role="status" class="muted small"></p><p id="discoverError" class="error" role="alert" hidden></p>
+</section>
+</fieldset>
+</form>
+<section id="curation" class="card" hidden tabindex="-1">
+<p class="eyebrow">04 / MAKE IT YOURS</p><h2 id="curationTitle">Your possibilities</h2>
+<p class="muted">We guide, you decide. Make a place a must-see, keep it optional, or skip it.</p>
+<p class="notice">AI suggestions, not verified local advice. Check current details before travelling.</p>
+<p id="staleChoices" class="notice" hidden>Your preferences changed. You can build with these choices or find fresh suggestions. Refreshing replaces the current shortlist.</p>
+<div id="filters" class="filters" role="group" aria-label="Filter places"></div>
+<div id="places" class="place-grid"></div>
+<p id="emptyFilter" class="muted" hidden>No places match this filter. Your other choices are still saved on this page.</p>
+<details><summary>Add a place of your own</summary>
+<div class="grid2"><div><label for="customName">Place name</label><input id="customName" maxlength="160" placeholder="The café your friend mentioned"></div><div><label for="customArea">Area or neighbourhood</label><input id="customArea" maxlength="160" placeholder="Optional"></div></div>
+<button id="addPlace" class="secondary" type="button">Add to my options</button><p id="customError" class="error" role="alert" hidden></p>
+</details>
+<p id="selectionSummary" role="status" class="selection-summary"></p>
+<button id="build" class="primary" type="button">Shape my itinerary →</button><p id="buildStatus" role="status" class="small muted"></p><p id="buildError" class="error" role="alert" hidden></p>
+</section>
+<section id="itinerary" class="card" hidden tabindex="-1">
+<p class="eyebrow">YOUR TRIP, TAKING SHAPE</p><h2 id="tripTitle"></h2>
+<p id="draftNotice" class="notice"></p><p id="stalePlan" class="notice" hidden>Your choices changed. This is your previous draft; rebuild to apply your changes.</p>
+<div id="daysOut"></div><div id="alternatives"></div><div id="review" class="review"></div><p id="saveStatus" class="small muted"></p>
+<button id="editChoices" class="secondary" type="button">Back to my choices ↑</button>
+</section>
+</div>
+<aside class="sidebar">
+<div class="trip-card"><p class="eyebrow">YOUR PLANNING COMPANION</p><h2>More you.<br>Less guesswork.</h2><div class="orbit" aria-hidden="true"><span>↗</span><i class="dot one"></i><i class="dot two"></i><i class="dot three"></i></div>
+<p id="tripSummary">Start with a destination.<br>We’ll help you find your rhythm.</p>
+<ul><li>Know what each place adds</li><li>Keep your must-sees in the plan</li><li>Leave space for a slower day</li></ul>
+</div>
+<div class="side-note"><strong>You’re in charge.</strong><p>“Not to miss” is our suggested shortlist. You can skip any pick, bring your own, and change the pace at any time.</p></div>
+<div class="side-note"><strong>A note on the map</strong><p>Interactive maps and checked commute routes are coming next. This version helps you choose and shape your trip.</p></div>
+</aside>
+</div>
+</main><footer>WanderMap · Thoughtful plans. Room to wander.</footer>
+</body></html>
