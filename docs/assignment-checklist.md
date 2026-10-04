@@ -8,7 +8,7 @@ Factual build details are filled in from the code. Everything marked **[you]** m
 |---|---|
 | GitHub repo URL | **[you]** |
 | Live Vercel URL | **[you]** |
-| Task 3 version | git tag `task-3` (landing page before the working feature) |
+| Task 3 version | commit `1ae306f` (landing page before the working feature). Tag it on GitHub if you want a named version. |
 
 ## Task 4: worksheet fields that are facts about the build
 
